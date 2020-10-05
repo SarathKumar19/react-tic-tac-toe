@@ -9,70 +9,80 @@ const Square = (props) => {
     </button>
   );
 };
+
 class Board extends React.Component {
-  renderSquare(i) {
+  renderGridSquare(row, col) {
+    const squareKey = `${row}${col}`;
     return (
       <Square
-        value={this.props.squares[i]}
-        onClick={() => this.props.onClick(i)}
-      />
+        key={squareKey}
+        value={this.props.grid[row][col]}
+        onClick={() => this.props.onClick(row, col)}
+      ></Square>
+    );
+  }
+
+  squaresInRow(row) {
+    let rowKey = `row${row}`;
+    let cols = [];
+    for (var col = 0; col < this.props.grid[row].length; col++) {
+      cols.push(this.renderGridSquare(row, col));
+    }
+    return (
+      <div className="board-row" key={rowKey}>
+        {cols}
+      </div>
     );
   }
 
   render() {
-    return (
-      <div>
-        <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </div>
-      </div>
-    );
+    let rowContainers = [];
+    for (var row = 0; row < this.props.grid.length; row++) {
+      rowContainers.push(this.squaresInRow(row));
+    }
+    return <div>{rowContainers}</div>;
   }
 }
-
 class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       history: [
         {
-          squares: Array(9).fill(null),
+          grid: Array(3).fill(Array(3).fill(null)),
         },
       ],
       stepNumber: 0,
       xIsNext: true,
+      winner: null,
     };
   }
 
-  handleClick(i) {
-    const history = this.state.history.slice(0, this.state.stepNumber + 1);
-    const currentBoard = history[history.length - 1];
-    const squares = currentBoard.squares.slice();
-    if (squares[i] || determineWinner(squares)) {
+  handleOnClick(row, col) {
+    if (
+      this.state.winner &&
+      (this.state.winner === "X" || this.state.winner === "O")
+    ) {
       return;
     }
-    squares[i] = this.state.xIsNext ? "X" : "O";
+    const history = this.state.history.slice(0, this.state.stepNumber + 1);
+    const currentBoard = history[history.length - 1];
+    const grid = currentBoard.grid.map((row) => {
+      return row.slice();
+    });
+
+    if (grid[row][col]) {
+      return;
+    }
+
+    grid[row][col] = this.state.xIsNext ? "X" : "O";
     this.setState({
-      history: history.concat([
-        {
-          squares: squares,
-        },
-      ]),
+      history: history.concat([{ grid: grid }]),
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
+      winner: computeWinner(grid),
     });
+    console.log(this.state);
   }
 
   jumpTo(move) {
@@ -85,11 +95,10 @@ class Game extends React.Component {
   render() {
     const history = this.state.history;
     const currentBoard = history[this.state.stepNumber];
-    const winner = determineWinner(currentBoard.squares);
-    let status;
 
-    if (winner) {
-      status = "Winner: " + winner;
+    let status;
+    if (this.state.winner) {
+      status = "Winner: " + this.state.winner;
     } else {
       status = "Next Player: " + (this.state.xIsNext ? "X" : "O");
     }
@@ -106,8 +115,8 @@ class Game extends React.Component {
       <div className="game">
         <div className="game-board">
           <Board
-            squares={currentBoard.squares}
-            onClick={(i) => this.handleClick(i)}
+            grid={currentBoard.grid}
+            onClick={(row, col) => this.handleOnClick(row, col)}
           />
         </div>
         <div className="game-info">
@@ -123,22 +132,57 @@ class Game extends React.Component {
 
 ReactDOM.render(<Game />, document.getElementById("root"));
 
-function determineWinner(squares) {
+function computeWinner(grid) {
   const winningCombinations = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
+    [
+      { row: 0, col: 0 },
+      { row: 0, col: 1 },
+      { row: 0, col: 2 },
+    ],
+    [
+      { row: 1, col: 0 },
+      { row: 1, col: 1 },
+      { row: 1, col: 2 },
+    ],
+    [
+      { row: 2, col: 0 },
+      { row: 2, col: 1 },
+      { row: 2, col: 2 },
+    ],
+    [
+      { row: 0, col: 0 },
+      { row: 1, col: 0 },
+      { row: 2, col: 0 },
+    ],
+    [
+      { row: 0, col: 1 },
+      { row: 1, col: 1 },
+      { row: 2, col: 1 },
+    ],
+    [
+      { row: 0, col: 2 },
+      { row: 1, col: 2 },
+      { row: 2, col: 2 },
+    ],
+    [
+      { row: 0, col: 0 },
+      { row: 1, col: 1 },
+      { row: 2, col: 2 },
+    ],
+    [
+      { row: 0, col: 2 },
+      { row: 1, col: 1 },
+      { row: 2, col: 0 },
+    ],
   ];
 
-  for (let [a, b, c] of winningCombinations) {
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+  for (let [cell1, cell2, cell3] of winningCombinations) {
+    if (
+      grid[cell1["row"]][cell1["col"]] &&
+      grid[cell1["row"]][cell1["col"]] === grid[cell2["row"]][cell2["col"]] &&
+      grid[cell1["row"]][cell1["col"]] === grid[cell3["row"]][cell3["col"]]
+    ) {
+      return grid[cell1["row"]][cell1["col"]];
     }
   }
-  return null;
 }
