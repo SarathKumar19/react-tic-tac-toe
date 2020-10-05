@@ -12,12 +12,12 @@ class Game extends Component {
       ],
       stepNumber: 0,
       xIsNext: true,
-      winner: null,
+      isEndOfGame: false,
     };
   }
 
   handleOnClick(row, col) {
-    if (this.state.winner) {
+    if (this.state.isEndOfGame) {
       return;
     }
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
@@ -35,9 +35,8 @@ class Game extends Component {
       history: history.concat([{ grid: grid }]),
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
-      winner: this.computeWinner(grid),
+      isEndOfGame: this.computeWinner(grid) || this.isEndOfGame(grid),
     });
-    console.log(this.state);
   }
 
   computeWinner(grid) {
@@ -90,10 +89,17 @@ class Game extends Component {
         grid[cell1["row"]][cell1["col"]] === grid[cell2["row"]][cell2["col"]] &&
         grid[cell1["row"]][cell1["col"]] === grid[cell3["row"]][cell3["col"]]
       ) {
-        return grid[cell1["row"]][cell1["col"]];
+        return {
+          player: grid[cell1["row"]][cell1["col"]],
+          combination: [cell1, cell2, cell3],
+        };
       }
     }
 
+    return this.isEndOfGame(grid) ? { player: "draw" } : null;
+  }
+
+  isEndOfGame(grid) {
     let isEndOfGame = true;
     for (let row of grid) {
       for (let cell of row) {
@@ -102,7 +108,7 @@ class Game extends Component {
         }
       }
     }
-    return isEndOfGame ? "draw" : null;
+    return isEndOfGame;
   }
 
   jumpTo(move) {
@@ -115,13 +121,16 @@ class Game extends Component {
   render() {
     const history = this.state.history;
     const currentBoard = history[this.state.stepNumber];
+    const winner = this.computeWinner(currentBoard.grid);
+    const winningCombination =
+      winner && winner.combination ? winner.combination : [];
 
     let status;
-    if (this.state.winner) {
-      if (this.state.winner === "draw") {
+    if (winner) {
+      if (winner.player === "draw") {
         status = "It's a draw!!!";
       } else {
-        status = "Winner: " + this.state.winner;
+        status = "Winner: " + winner.player;
       }
     } else {
       status = "Next Player: " + (this.state.xIsNext ? "X" : "O");
@@ -140,6 +149,7 @@ class Game extends Component {
         <div className="game-board">
           <Board
             grid={currentBoard.grid}
+            winningCombination={winningCombination}
             onClick={(row, col) => this.handleOnClick(row, col)}
           />
         </div>

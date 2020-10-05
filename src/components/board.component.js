@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 const Square = (props) => {
   return (
-    <button className="square" onClick={props.onClick}>
+    <button className={props.className} onClick={props.onClick}>
       {props.value}
     </button>
   );
@@ -10,10 +10,17 @@ const Square = (props) => {
 
 class Board extends Component {
   renderGridSquare(row, col) {
+    let squareClassName = "square";
+    for (let combination of this.props.winningCombination) {
+      if (combination.row === row && combination.col === col) {
+        squareClassName = "selectedSquare";
+      }
+    }
     const squareKey = `${row}${col}`;
     return (
       <Square
         key={squareKey}
+        className={squareClassName}
         value={this.props.grid[row][col]}
         onClick={() => this.props.onClick(row, col)}
       ></Square>
