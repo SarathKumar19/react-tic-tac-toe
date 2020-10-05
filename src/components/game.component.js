@@ -17,10 +17,7 @@ class Game extends Component {
   }
 
   handleOnClick(row, col) {
-    if (
-      this.state.winner &&
-      (this.state.winner === "X" || this.state.winner === "O")
-    ) {
+    if (this.state.winner) {
       return;
     }
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
@@ -96,6 +93,16 @@ class Game extends Component {
         return grid[cell1["row"]][cell1["col"]];
       }
     }
+
+    let isEndOfGame = true;
+    for (let row of grid) {
+      for (let cell of row) {
+        if (!cell) {
+          isEndOfGame = false;
+        }
+      }
+    }
+    return isEndOfGame ? "draw" : null;
   }
 
   jumpTo(move) {
@@ -111,7 +118,11 @@ class Game extends Component {
 
     let status;
     if (this.state.winner) {
-      status = "Winner: " + this.state.winner;
+      if (this.state.winner === "draw") {
+        status = "It's a draw!!!";
+      } else {
+        status = "Winner: " + this.state.winner;
+      }
     } else {
       status = "Next Player: " + (this.state.xIsNext ? "X" : "O");
     }
@@ -133,8 +144,8 @@ class Game extends Component {
           />
         </div>
         <div className="game-info">
-          <div>{status}</div>
-          <ol>{moves}</ol>
+          <div className="status">{status}</div>
+          <ul>{moves}</ul>
         </div>
       </div>
     );
