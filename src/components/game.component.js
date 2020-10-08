@@ -8,6 +8,7 @@ class Game extends Component {
       history: [
         {
           grid: Array(3).fill(Array(3).fill(null)),
+          cellSelected: null,
         },
       ],
       stepNumber: 0,
@@ -36,7 +37,7 @@ class Game extends Component {
 
     grid[row][col] = this.state.xIsNext ? "X" : "O";
     this.setState({
-      history: history.concat([{ grid: grid }]),
+      history: history.concat([{ grid: grid, cellSelected: {'row': row, 'col': col} }]),
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
       isEndOfGame: this.computeWinner(grid) || this.isEndOfGame(grid),
@@ -141,7 +142,11 @@ class Game extends Component {
     }
 
     const moves = history.map((step, move) => {
-      const desc = move ? "Go to move #" + move : "Go to game start";
+      let desc = "Go to game start";
+      if (move) {
+        let {row, col} = step.cellSelected;
+        desc = `Go to move #${move} at (${col}, ${row})`;
+      }
       return (
         <li key={move}>
           <button onClick={() => this.jumpTo(move)}>{desc}</button>
