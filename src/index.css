@@ -76,3 +76,12 @@ ul > li {
   border-radius: 5px;
   background-color: #efefef;
 }
+
+.moveHistoryButtonSelected {
+  padding: 5px;
+  border: 2px solid green;
+  border-radius: 5px;
+  background-color: green;
+  font-weight: bold;
+  color: white;
+}

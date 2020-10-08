@@ -12,6 +12,7 @@ class Game extends Component {
         },
       ],
       stepNumber: 0,
+      selectedStepNumber: null,
       xIsNext: true,
       isEndOfGame: false,
     };
@@ -39,6 +40,7 @@ class Game extends Component {
     this.setState({
       history: history.concat([{ grid: grid, cellSelected: {'row': row, 'col': col} }]),
       stepNumber: history.length,
+      selectedStepNumber: null,
       xIsNext: !this.state.xIsNext,
       isEndOfGame: this.computeWinner(grid) || this.isEndOfGame(grid),
     });
@@ -119,6 +121,7 @@ class Game extends Component {
   jumpTo(move) {
     this.setState({
       stepNumber: move,
+      selectedStepNumber: move,
       xIsNext: move % 2 === 0,
     });
   }
@@ -142,6 +145,10 @@ class Game extends Component {
     }
 
     const moves = history.map((step, move) => {
+      let moveButtonClassName = "moveHistoryButton"
+      if (this.state.selectedStepNumber !== null && move === this.state.selectedStepNumber) {
+        moveButtonClassName = "moveHistoryButtonSelected"
+      }
       let desc = "Go to game start";
       if (move) {
         let {row, col} = step.cellSelected;
@@ -149,10 +156,11 @@ class Game extends Component {
       }
       return (
         <li key={move}>
-          <button className="moveHistoryButton" onClick={() => this.jumpTo(move)}>{desc}</button>
+          <button className={moveButtonClassName} onClick={() => this.jumpTo(move)}>{desc}</button>
         </li>
       );
     });
+    
     return (
       <div className="game">
         <div className="game-board">
