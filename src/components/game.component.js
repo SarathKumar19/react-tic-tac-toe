@@ -20,6 +20,10 @@ class Game extends Component {
     if (this.state.isEndOfGame) {
       return;
     }
+    if (this.state.stepNumber !== this.state.history.length - 1) {
+      // Allow player to play only if he's on current move (not on traversing history of moves)
+      return;
+    }
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const currentBoard = history[history.length - 1];
     const grid = currentBoard.grid.map((row) => {
