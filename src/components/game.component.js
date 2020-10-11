@@ -11,6 +11,7 @@ class Game extends Component {
           cellSelected: null,
         },
       ],
+      moveHistorySortOrder: "Ascending",
       stepNumber: 0,
       selectedStepNumber: null,
       xIsNext: true,
@@ -126,6 +127,18 @@ class Game extends Component {
     });
   }
 
+  handleMoveHistorySortOrderOnClick() {
+    let newSortOrder = "";
+    if (this.state.moveHistorySortOrder === "Ascending") {
+      newSortOrder = "Descending";
+    } else {
+      newSortOrder = "Ascending";
+    }
+    this.setState({
+      moveHistorySortOrder: newSortOrder,
+    })
+  }
+
   render() {
     const history = this.state.history;
     const currentBoard = history[this.state.stepNumber];
@@ -144,7 +157,12 @@ class Game extends Component {
       status = "Next Player: " + (this.state.xIsNext ? "X" : "O");
     }
 
-    const moves = history.map((step, move) => {
+    let sortOrder = "Ascending";
+    if (this.state.moveHistorySortOrder === "Ascending") {
+      sortOrder = "Descending";
+    }
+    
+    let moves = history.map((step, move) => {
       let moveButtonClassName = "moveHistoryButton"
       if (this.state.selectedStepNumber !== null && move === this.state.selectedStepNumber) {
         moveButtonClassName = "moveHistoryButtonSelected"
@@ -160,6 +178,10 @@ class Game extends Component {
         </li>
       );
     });
+
+    if (this.state.moveHistorySortOrder === "Descending") {
+      moves = moves.reverse();
+    }
     
     return (
       <div className="game">
@@ -172,6 +194,14 @@ class Game extends Component {
         </div>
         <div className="game-info">
           <div className="status">{status}</div>
+          <div>
+            <button 
+              className="moveHistorySortButton" 
+              onClick={() => this.handleMoveHistorySortOrderOnClick()}
+            >
+              Sort moves in {sortOrder} order
+            </button>
+          </div>
           <ul>{moves}</ul>
         </div>
       </div>
